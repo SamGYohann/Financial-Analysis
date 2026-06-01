@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bed Bath & Beyond — Turnaround Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f0f0e;
+    --ink-2: #3a3a37;
+    --ink-3: #6b6b66;
+    --ink-4: #9e9e98;
+    --paper: #faf9f6;
+    --paper-2: #f2f0eb;
+    --paper-3: #e8e4dc;
+    --red: #b83232;
+    --red-light: #f5e8e8;
+    --amber: #c47a1a;
+    --amber-light: #fef3e2;
+    --green: #2d6a3f;
+    --green-light: #e8f4ed;
+    --border: #d4cfc4;
+    --nav-w: 220px;
+    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--nav-w);
+    height: 100vh;
+    background: var(--ink);
+    color: var(--paper);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 2rem 0 3rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nav-brand {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 1rem;
+  }
+
+  .nav-brand .label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .nav-brand .title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #fff;
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 1.5rem;
+    color: rgba(255,255,255,0.55);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    transition: color 0.15s, background 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  nav a:hover, nav a.active {
+    color: #fff;
+    background: rgba(255,255,255,0.06);
+    border-left-color: #c8a96e;
+  }
+
+  nav a .num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    min-width: 20px;
+  }
+
+  nav .nav-section-label {
+    padding: 1.25rem 1.5rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+  }
+
+  /* MAIN */
+  main {
+    margin-left: var(--nav-w);
+    min-height: 100vh;
+  }
+
+  section {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 5rem 3rem 5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-child { border-bottom: none; }
+
+  /* COVER */
+  #cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 8rem;
+    padding-bottom: 6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cover-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .cover-title {
+    font-family: var(--font-serif);
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+
+  .cover-subtitle {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink-3);
+    margin-bottom: 3rem;
+    font-style: italic;
+  }
+
+  .cover-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    max-width: 600px;
+  }
+
+  .cover-meta-item {
+    padding: 1rem 1.25rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .cover-meta-item:last-child { border-right: none; }
+
+  .cover-meta-item .k {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .cover-meta-item .v {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .cover-divider {
+    width: 40px;
+    height: 2px;
+    background: #c8a96e;
+    margin: 3rem 0 2rem;
+  }
+
+  .cover-abstract {
+    max-width: 520px;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.75;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border: 1px solid;
+    margin-top: 2.5rem;
+  }
+
+  .status-badge.red {
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--red-light);
+  }
+
+  .status-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* SECTION HEADERS */
+  .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #c8a96e;
+    margin-bottom: 0.4rem;
+  }
+
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  h3 {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 2.5rem 0 1rem;
+  }
+
+  .section-lead {
+    font-size: 15px;
+    color: var(--ink-2);
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    max-width: 640px;
+  }
+
+  .section-rule {
+    width: 30px;
+    height: 1px;
+    background: #c8a96e;
+    margin: 1rem 0 2rem;
+  }
+
+  /* CALLOUT BOX */
+  .callout {
+    border-left: 3px solid;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+
+  .callout.red { border-color: var(--red); background: var(--red-light); color: var(--red); }
+  .callout.amber { border-color: var(--amber); background: var(--amber-light); color: var(--amber); }
+  .callout.green { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .callout.neutral { border-color: var(--border); background: var(--paper-2); color: var(--ink-2); }
+
+  .callout strong { color: inherit; }
+
+  /* TABLES */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 1.25rem 0 2rem;
+  }
+
+  thead tr {
+    border-bottom: 2px solid var(--ink);
+  }
+
+  th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 0.4rem 0.75rem 0.6rem;
+    font-weight: 500;
+  }
+
+  th.r, td.r { text-align: right; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--paper-3);
+  }
+
+  tbody tr:hover { background: var(--paper-2); }
+
+  td {
+    padding: 0.6rem 0.75rem;
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+
+  td strong { color: var(--ink); font-weight: 600; }
+
+  td.mono { font-family: var(--font-mono); font-size: 12px; }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding: 2px 7px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .tag.red { border-color: var(--red); color: var(--red); background: var(--red-light); }
+  .tag.amber { border-color: var(--amber); color: var(--amber); background: var(--amber-light); }
+  .tag.green { border-color: var(--green); color: var(--green); background: var(--green-light); }
+  .tag.gray { border-color: var(--border); color: var(--ink-3); background: var(--paper-2); }
+
+  /* STAT GRID */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 1.5rem 0 2.5rem;
+  }
+
+  .stat-item {
+    background: var(--paper);
+    padding: 1.25rem;
+  }
+
+  .stat-item .sk {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-item .sv {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .stat-item .sc {
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  .stat-item .sv.red { color: var(--red); }
+  .stat-item .sv.amber { color: var(--amber); }
+  .stat-item .sv.green { color: var(--green); }
+
+  /* TWO COL */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 1.5rem 0;
+  }
+
+  .two-col-wide {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+  }
+
+  /* WATERFALL */
+  .waterfall-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 4px 0;
+  }
+
+  .waterfall-label {
+    font-size: 12px;
+    color: var(--ink-2);
+    min-width: 220px;
+    padding-right: 12px;
+  }
+
+  .waterfall-track {
+    flex: 1;
+    height: 26px;
+    background: var(--paper-2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .waterfall-fill {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .waterfall-fill.blue { background: #2563a0; }
+  .waterfall-fill.teal { background: #1a7a5e; }
+  .waterfall-fill.amber { background: var(--amber); }
+  .waterfall-fill.red { background: var(--red); }
+  .waterfall-fill.gray { background: var(--ink-3); }
+
+  /* TIMELINE */
+  .timeline {
+    position: relative;
+    padding-left: 2rem;
+    margin: 1.5rem 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .tl-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .tl-dot {
+    position: absolute;
+    left: -1.75rem;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--paper);
+  }
+
+  .tl-dot.red { border-color: var(--red); background: var(--red); }
+  .tl-dot.amber { border-color: var(--amber); background: var(--amber); }
+  .tl-dot.green { border-color: var(--green); background: var(--green); }
+
+  .tl-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-4);
+    margin-bottom: 3px;
+  }
+
+  .tl-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .tl-body {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+
+  /* ACTION ITEMS */
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+
+  .action-card {
+    border: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    background: var(--paper);
+  }
+
+  .action-card .ac-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .action-card.cut .ac-label { color: var(--red); }
+  .action-card.protect .ac-label { color: var(--green); }
+  .action-card.renegotiate .ac-label { color: var(--amber); }
+  .action-card.sell .ac-label { color: #2563a0; }
+
+  .action-card .ac-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .action-card .ac-body {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+
+  /* SCENARIO TABLE */
+  .scenario-table table thead tr { border-bottom: 2px solid var(--ink); }
+  .scenario-col-base { background: var(--paper-2); }
+  .scenario-col-cut { background: #fff8f8; }
+  .scenario-col-supply { background: #fffdf0; }
+  .scenario-col-close { background: #f5f9ff; }
+
+  /* CASH FLOW */
+  .cf-positive { color: var(--green); font-family: var(--font-mono); font-size: 12px; }
+  .cf-negative { color: var(--red); font-family: var(--font-mono); font-size: 12px; }
+  .cf-neutral { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+  .cf-total { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--ink); }
+
+  tbody tr.subtotal-row {
+    background: var(--paper-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr.subtotal-row td { font-weight: 600; color: var(--ink); }
+
+  /* PRINT */
+  @media print {
+    nav { display: none; }
+    main { margin-left: 0; }
+    section { page-break-after: always; padding: 2rem; }
+  }
+
+  /* SCROLL HIGHLIGHT */
+  .highlight-row { background: #fefce8 !important; }
+
+  /* FOOTER */
+  .doc-footer {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 3rem 4rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-4);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  p { margin-bottom: 0.85rem; }
+  p:last-child { margin-bottom: 0; }
+
+  ul, ol {
+    padding-left: 1.5rem;
+    margin: 0.75rem 0 1rem;
+  }
+
+  li {
+    margin-bottom: 0.4rem;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+
+  li strong { color: var(--ink); }
+
+  .indent { padding-left: 1rem; border-left: 2px solid var(--paper-3); margin: 0.5rem 0; }
+
+  .gold { color: #c8a96e; }
+</style>
+</head>
+<body>
+
+<nav id="sidenav">
+  <div class="nav-brand">
+    <div class="label">Turnaround Simulation</div>
+    <div class="title">Bed Bath &amp; Beyond</div>
+  </div>
+
+  <div class="nav-section-label">Document</div>
+  <a href="#cover"><span class="num">00</span> Cover</a>
+  <a href="#exec"><span class="num">01</span> Executive Summary</a>
+
+  <div class="nav-section-label">Analysis</div>
+  <a href="#diagnosis"><span class="num">02</span> Failure Diagnosis</a>
+  <a href="#capital"><span class="num">03</span> Capital Structure</a>
+  <a href="#cashflow"><span class="num">04</span> 13-Week Cash Flow</a>
+  <a href="#waterfall"><span class="num">05</span> Liquidation Waterfall</a>
+
+  <div class="nav-section-label">Intervention</div>
+  <a href="#h72"><span class="num">06</span> First 72 Hours</a>
+  <a href="#h30"><span class="num">07</span> First 30 Days</a>
+  <a href="#actions"><span class="num">08</span> Cut / Protect / Sell</a>
+  <a href="#scenarios"><span class="num">09</span> Scenario Analysis</a>
+</nav>
+
+<main>
+
+<!-- COVER -->
+<section id="cover" style="max-width:860px;">
+  <div class="cover-label">Project Meridian — Confidential Working Document</div>
+  <div class="cover-title">Bed Bath<br>&amp; Beyond</div>
+  <div class="cover-subtitle">Turnaround Simulation &amp; Restructuring Analysis</div>
+
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <div class="k">Filed</div>
+      <div class="v">Aug 9, 2023</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="k">Chapter</div>
+      <div class="v">11</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="k">Peak Stores</div>
+      <div class="v">1,549</div>
+    </div>
+    <div class="cover-meta-item">
+      <div class="k">Debt at Filing</div>
+      <div class="v">~$5.2B</div>
+    </div>
+  </div>
+
+  <div class="cover-divider"></div>
+  <div class="cover-abstract">
+    This document simulates a turnaround intervention for Bed Bath &amp; Beyond as if a restructuring team arrived in Q3 2022 — one year before the Chapter 11 filing. It uses public financial data (10-K, 10-Q, 8-K filings), court documents, and capital market data to construct a full operating and financial picture, then prescribes a precise intervention sequence.
+  </div>
+
+  <div class="status-badge red"><span class="dot"></span> Distressed — Pre-Filing Intervention Scenario</div>
+</section>
+
+<!-- EXEC SUMMARY -->
+<section id="exec">
+  <div class="section-num">01</div>
+  <h2>Executive Summary</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Board-level assessment. This is the document a restructuring advisor would walk into the boardroom with.
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-item">
+      <div class="sk">Revenue (FY2022)</div>
+      <div class="sv red">$7.9B</div>
+      <div class="sc">↓ from $11.2B in FY2019</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">Adj. EBITDA (FY2022)</div>
+      <div class="sv red">$(223)M</div>
+      <div class="sc">Negative. No path to break-even at current structure</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">Total Debt</div>
+      <div class="sv red">~$5.2B</div>
+      <div class="sc">$2.9B drawn ABL + FILO + unsecured notes</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">Cash (Q3 FY2022)</div>
+      <div class="sv red">$153M</div>
+      <div class="sc">Against $500M+ quarterly cash burn rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">Gross Margin</div>
+      <div class="sv amber">28.3%</div>
+      <div class="sc">↓ from 38.6% (FY2019). Structural deterioration</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">Stores Operating</div>
+      <div class="sv amber">~900</div>
+      <div class="sc">Down from 1,549 at peak; ~350 estimated unprofitable</div>
+    </div>
+  </div>
+
+  <h3>The Situation</h3>
+  <p>Bed Bath &amp; Beyond is a structurally broken retailer with a fundamentally unworkable cost base, a debt load that cannot be serviced from operations, and a brand that has lost pricing power with both customers and suppliers. This is not a cyclical downturn. The company executed a <strong>strategic inversion</strong> — it removed the one thing that made it worth visiting (national brands and deep SKU depth), replaced it with private label goods that customers rejected, and funded the experiment with leveraged buybacks that extracted $11.8B in equity between 2004 and 2021.</p>
+
+  <p>By Q3 FY2022, the company was burning cash faster than it could raise it. Vendor credit had tightened to near-zero terms. Shelf gaps in stores were visible to customers. The ABL borrowing base was collapsing as inventory values deteriorated. Management was cycling through its fourth CEO in two years.</p>
+
+  <h3>The Core Thesis</h3>
+  <div class="callout red">
+    <strong>This company cannot be saved in its current form.</strong> The question is not whether to restructure — it is whether enough value can be preserved in a going-concern sale or managed wind-down to return anything above liquidation to senior secured creditors. A traditional operational turnaround is not achievable on the available liquidity runway.
+  </div>
+
+  <h3>Recommended Path</h3>
+  <p>If a restructuring team arrived in Q3 2022 with full board authority, the recommended path is a <strong>prepackaged or prenegotiated Chapter 11</strong> with a simultaneous marketing process for the buybuy BABY division (est. standalone value $400–600M) and a controlled store liquidation that funds the estate. The ABL and FILO lenders would emerge as the primary constituency. Unsecured noteholders would receive a negotiated package of residual equity or cash depending on the asset sale outcome.</p>
+
+  <h3>What This Document Covers</h3>
+  <ul>
+    <li>Full diagnosis of how and why the company collapsed — operationally, strategically, and financially</li>
+    <li>Capital structure map by creditor class with recovery rate estimates</li>
+    <li>13-week cash flow model built from the last clean quarterly filing</li>
+    <li>Liquidation and recovery waterfall against the secured debt stack</li>
+    <li>Specific 72-hour and 30-day intervention plans with named actions</li>
+    <li>Cut / protect / renegotiate / sell framework applied to the actual business</li>
+    <li>Four-scenario analysis: base, aggressive cuts, supplier stretch, store closures</li>
+  </ul>
+
+  <div class="callout neutral">
+    <strong>Data sources:</strong> BB&amp;B 10-K FY2022 (filed Apr 2022), 10-Q Q3 FY2022 (filed Jan 2023), 8-K filings Q1–Q3 FY2023, Chapter 11 first-day declaration (Aug 2023), Bloomberg terminal data, court-filed schedules of assets and liabilities.
+  </div>
+</section>
+
+<!-- DIAGNOSIS -->
+<section id="diagnosis">
+  <div class="section-num">02</div>
+  <h2>Failure Diagnosis</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Why the company actually collapsed. Not the surface narrative — the structural causes in order of severity.
+  </div>
+
+  <h3>Root Cause Map</h3>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">2004 – 2021</div>
+      <div class="tl-title">Capital Destruction via Leveraged Buybacks — $11.8B Extracted</div>
+      <div class="tl-body">The company repurchased $11.8B of its own stock using cash and debt over 17 years, leaving the balance sheet with virtually no equity cushion. This was not growth investment — it was financial engineering to support EPS metrics and management compensation. By 2019, the company had negative tangible book value. When revenue declined, there was nothing to absorb the shock. This is the original sin. Everything else is downstream.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">2019 – 2021</div>
+      <div class="tl-title">The Mark Tritton Disaster — Private Label Pivot</div>
+      <div class="tl-body">Incoming CEO Mark Tritton (ex-Target) eliminated 80% of national brand SKUs and replaced them with eight house private-label brands. The logic borrowed from Target's playbook failed catastrophically in the BB&amp;B context: BB&amp;B's customers came for brands. The "owned brand" strategy removed the reason to visit. Comparable store sales declined 14% in FY2021 and accelerated to (25%) in Q1 FY2022. The private label goods also had longer lead times and required deeper inventory commitments — exactly the wrong structure entering a supply chain and inflation shock year.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">2021 – 2022</div>
+      <div class="tl-title">Vendor Confidence Collapse — The Self-Reinforcing Death Spiral</div>
+      <div class="tl-body">As same-store sales collapsed, vendors began requiring shorter payment terms or prepayment. This compressed the working capital cycle and increased cash outflow precisely when operating cash flow was falling. Shelf gaps appeared in stores. Shelf gaps accelerated comp declines. Comp declines further deteriorated vendor confidence. By mid-2022, key suppliers had reduced or eliminated credit terms entirely. The company's ABL availability — collateral-based against inventory and AR — began shrinking in tandem with inventory quality.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot amber"></div>
+      <div class="tl-date">2022</div>
+      <div class="tl-title">Management Instability — Four CEOs in Two Years</div>
+      <div class="tl-body">Tritton was fired June 2022. Sue Gove was named interim, then permanent CEO. The board could not articulate or execute a coherent turnaround thesis. Capital raise attempts (the at-the-market equity offering in early 2023) were dilutive and ultimately failed to bridge the liquidity gap. Investor confidence — including the Ryan Cohen meme-stock episode in August 2022 — added volatility without capital or strategic clarity.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot amber"></div>
+      <div class="tl-date">2022 – 2023</div>
+      <div class="tl-title">Lease Overhang — 900 Locations, Mostly Unprofitable</div>
+      <div class="tl-body">The company operated under long-term leases on an oversized store fleet. At peak, 1,549 locations. Post-COVID, traffic patterns had shifted permanently toward e-commerce. Management was slow to execute lease renegotiations or closure programs. The real estate portfolio became a cash drain rather than an asset — fixed occupancy costs on deteriorating revenue bases compressed store-level margins to negative territory across a large portion of the fleet.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot amber"></div>
+      <div class="tl-date">Structural</div>
+      <div class="tl-title">Technology and E-Commerce Underinvestment</div>
+      <div class="tl-body">While competitors (Wayfair, Amazon, Target, Williams-Sonoma) invested aggressively in digital, BB&amp;B's e-commerce infrastructure remained dated. The company's website lacked the discovery and recommendation engine that competitors deployed. Digital revenue as a percentage of total was below category benchmarks. When stores became a liability, there was no digital business of sufficient scale to partially offset the decline.</div>
+    </div>
+  </div>
+
+  <h3>The Numbers That Tell the Story</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th class="r">FY2019</th>
+        <th class="r">FY2020</th>
+        <th class="r">FY2021</th>
+        <th class="r">FY2022</th>
+        <th class="r">Trend</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Net Revenue</strong></td>
+        <td class="r mono">$11.2B</td>
+        <td class="r mono">$9.3B</td>
+        <td class="r mono">$7.9B</td>
+        <td class="r mono">$5.6B</td>
+        <td class="r"><span class="tag red">−50%</span></td>
+      </tr>
+      <tr>
+        <td><strong>Gross Margin %</strong></td>
+        <td class="r mono">38.6%</td>
+        <td class="r mono">35.1%</td>
+        <td class="r mono">32.0%</td>
+        <td class="r mono">28.3%</td>
+        <td class="r"><span class="tag red">−1030bps</span></td>
+      </tr>
+      <tr>
+        <td><strong>SG&amp;A % Revenue</strong></td>
+        <td class="r mono">35.2%</td>
+        <td class="r mono">34.0%</td>
+        <td class="r mono">38.1%</td>
+        <td class="r mono">44.6%</td>
+        <td class="r"><span class="tag red">+940bps</span></td>
+      </tr>
+      <tr>
+        <td><strong>EBITDA</strong></td>
+        <td class="r mono">$842M</td>
+        <td class="r mono">$524M</td>
+        <td class="r mono">$(159)M</td>
+        <td class="r mono">$(556)M</td>
+        <td class="r"><span class="tag red">Collapse</span></td>
+      </tr>
+      <tr>
+        <td><strong>Comp Store Sales</strong></td>
+        <td class="r mono">−6.6%</td>
+        <td class="r mono">−12.0%</td>
+        <td class="r mono">−14.1%</td>
+        <td class="r mono">−28.4%</td>
+        <td class="r"><span class="tag red">Accelerating</span></td>
+      </tr>
+      <tr>
+        <td><strong>Net Debt</strong></td>
+        <td class="r mono">$1.1B</td>
+        <td class="r mono">$1.5B</td>
+        <td class="r mono">$2.8B</td>
+        <td class="r mono">$4.4B</td>
+        <td class="r"><span class="tag red">+4x</span></td>
+      </tr>
+      <tr>
+        <td><strong>Inventory Turns</strong></td>
+        <td class="r mono">3.8x</td>
+        <td class="r mono">3.2x</td>
+        <td class="r mono">2.7x</td>
+        <td class="r mono">2.1x</td>
+        <td class="r"><span class="tag amber">Deteriorating</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout red">
+    <strong>The inflection point was FY2021.</strong> That was the year gross margin fell below the level where SG&amp;A leverage was mathematically possible. From that point, every dollar of revenue generated a net cash outflow at the operating level. The company needed to either restructure immediately or raise equity capital to buy time. It did neither at the required scale.
+  </div>
+</section>
+
+<!-- CAPITAL STRUCTURE -->
+<section id="capital">
+  <div class="section-num">03</div>
+  <h2>Capital Structure</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Creditor class map with principal amounts, seniority, collateral, and estimated recovery ranges based on asset base at filing.
+  </div>
+
+  <h3>Debt Stack at Filing (August 2023)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Tranche</th>
+        <th>Lender / Holder</th>
+        <th class="r">Principal</th>
+        <th>Maturity</th>
+        <th>Security</th>
+        <th>Priority</th>
+        <th class="r">Est. Recovery</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>ABL Revolver</strong></td>
+        <td>BofA (agent), syndicate</td>
+        <td class="r mono">~$1,200M</td>
+        <td>Aug 2026</td>
+        <td>1L — All assets</td>
+        <td><span class="tag green">Super Senior</span></td>
+        <td class="r mono cf-positive">85–95%</td>
+      </tr>
+      <tr>
+        <td><strong>FILO Term Loan</strong></td>
+        <td>Sixth Street (agent)</td>
+        <td class="r mono">~$375M</td>
+        <td>Aug 2027</td>
+        <td>1L — FILO tranche</td>
+        <td><span class="tag green">First Lien</span></td>
+        <td class="r mono cf-positive">70–85%</td>
+      </tr>
+      <tr>
+        <td><strong>Term Loan B</strong></td>
+        <td>Sixth Street / others</td>
+        <td class="r mono">~$375M</td>
+        <td>Aug 2027</td>
+        <td>2L — all assets</td>
+        <td><span class="tag amber">Second Lien</span></td>
+        <td class="r mono cf-negative">20–40%</td>
+      </tr>
+      <tr>
+        <td><strong>4.915% Sr. Notes</strong></td>
+        <td>Public noteholders</td>
+        <td class="r mono">~$300M</td>
+        <td>Aug 2034</td>
+        <td>Unsecured</td>
+        <td><span class="tag red">Unsecured</span></td>
+        <td class="r mono cf-negative">0–5%</td>
+      </tr>
+      <tr>
+        <td><strong>3.749% Sr. Notes</strong></td>
+        <td>Public noteholders</td>
+        <td class="r mono">~$300M</td>
+        <td>Aug 2024</td>
+        <td>Unsecured</td>
+        <td><span class="tag red">Unsecured</span></td>
+        <td class="r mono cf-negative">0–5%</td>
+      </tr>
+      <tr>
+        <td><strong>Trade Payables</strong></td>
+        <td>Vendor base (~500 vendors)</td>
+        <td class="r mono">~$1,400M</td>
+        <td>Current</td>
+        <td>Unsecured / reclamation</td>
+        <td><span class="tag red">Unsecured</span></td>
+        <td class="r mono cf-negative">5–15%</td>
+      </tr>
+      <tr>
+        <td><strong>Lease Obligations</strong></td>
+        <td>~900 landlords</td>
+        <td class="r mono">~$1,200M</td>
+        <td>Various</td>
+        <td>Unsecured / rejection claims</td>
+        <td><span class="tag red">Unsecured</span></td>
+        <td class="r mono cf-negative">2–8%</td>
+      </tr>
+      <tr>
+        <td><strong>Equity</strong></td>
+        <td>Public shareholders</td>
+        <td class="r mono">—</td>
+        <td>—</td>
+        <td>Residual</td>
+        <td><span class="tag gray">Equity</span></td>
+        <td class="r mono"><em style="color:var(--ink-4)">Zero</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Estimated Asset Base vs. Claims</h3>
+  <div class="stat-grid">
+    <div class="stat-item">
+      <div class="sk">Inventory (book)</div>
+      <div class="sv">$1.1B</div>
+      <div class="sc">Liquidation value: ~55–65% = $600–715M</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">Accounts Receivable</div>
+      <div class="sv">$186M</div>
+      <div class="sc">Mostly credit card receivables; ~90% collectible</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">PP&amp;E (net book)</div>
+      <div class="sv">$512M</div>
+      <div class="sc">Fixtures, tech, leasehold. Liquidation: ~20% = $100M</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">buybuy BABY</div>
+      <div class="sv amber">$400–600M</div>
+      <div class="sc">Best asset. Standalone sale process recommended</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">IP / Brand / Customer Data</div>
+      <div class="sv">$50–150M</div>
+      <div class="sc">BB&amp;B brand + customer email database; ~1M loyalty members</div>
+    </div>
+    <div class="stat-item">
+      <div class="sk">Total Recoverable Value</div>
+      <div class="sv amber">$1.4–1.7B</div>
+      <div class="sc">Against ~$5.2B total claims — significant impairment</div>
+    </div>
+  </div>
+
+  <div class="callout amber">
+    <strong>The ABL lenders are the de facto decision-makers.</strong> Their collateral (inventory + AR) covers most of the ABL balance, but deteriorates daily as comp sales fall. Their incentive is to move fast. The FILO holders are likely to take a meaningful haircut in liquidation; in a going-concern sale of buybuy BABY, they fare significantly better. This dynamic is the central negotiation in any restructuring.
+  </div>
+
+  <h3>Key Intercreditor Dynamics</h3>
+  <ul>
+    <li><strong>ABL vs. FILO:</strong> The FILO tranche was a second-lien component of the revolving credit facility — its recovery depends entirely on the inventory quality floor. In distressed inventory liquidation, FILO lenders face meaningful discount on the incremental collateral.</li>
+    <li><strong>Secured vs. Unsecured:</strong> The absolute priority rule in Chapter 11 means unsecured creditors (notes + trade) receive nothing until secured claims are paid in full. Given the asset shortfall, there is no economic scenario in which the unsecured notes recover material value in liquidation.</li>
+    <li><strong>buybuy BABY as swing asset:</strong> A sale of BABY at $400–500M changes the FILO recovery picture materially and could put something in the hands of the 2L. This is the only scenario where any party below first lien receives value.</li>
+  </ul>
+</section>
+
+<!-- 13-WEEK CASH FLOW -->
+<section id="cashflow">
+  <div class="section-num">04</div>
+  <h2>13-Week Cash Flow Model</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Built from Q3 FY2022 (period ending November 26, 2022) — the last clean quarterly filing before the terminal liquidity phase. Figures in $M. This model projects the business forward through early FY2023.
+  </div>
+
+  <div class="callout neutral">
+    <strong>Model assumptions:</strong> Revenue run-rate based on Q3 FY2022 annualized ($1.66B / quarter = ~$128M/week). Comp sales decline of (4%) per week embedded. Gross margin 28.3%. SG&amp;A includes ~$245M quarterly fixed occupancy costs. Interest reflects drawn ABL at SOFR + 175bps (~7.5% all-in as of Q4 2022). Capex minimal (maintenance only).
+  </div>
+
+  <table style="font-size:12px;">
+    <thead>
+      <tr>
+        <th style="min-width:180px;">Line Item</th>
+        <th class="r">Wk 1</th>
+        <th class="r">Wk 2</th>
+        <th class="r">Wk 3</th>
+        <th class="r">Wk 4</th>
+        <th class="r">Wk 5–8<br><span style="font-weight:400;font-size:9px;">(4-wk)</span></th>
+        <th class="r">Wk 9–13<br><span style="font-weight:400;font-size:9px;">(5-wk)</span></th>
+        <th class="r">13-Wk<br>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="8" style="padding:0.5rem 0.75rem; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-4); background:var(--paper-2);">OPERATING RECEIPTS</td></tr>
+      <tr>
+        <td>Retail store sales</td>
+        <td class="r cf-neutral">108</td>
+        <td class="r cf-neutral">104</td>
+        <td class="r cf-neutral">100</td>
+        <td class="r cf-neutral">97</td>
+        <td class="r cf-neutral">372</td>
+        <td class="r cf-neutral">451</td>
+        <td class="r cf-neutral">1,232</td>
+      </tr>
+      <tr>
+        <td>E-commerce / digital</td>
+        <td class="r cf-neutral">19</td>
+        <td class="r cf-neutral">19</td>
+        <td class="r cf-neutral">18</td>
+        <td class="r cf-neutral">18</td>
+        <td class="r cf-neutral">68</td>
+        <td class="r cf-neutral">82</td>
+        <td class="r cf-neutral">224</td>
+      </tr>
+      <tr>
+        <td>buybuy BABY</td>
+        <td class="r cf-neutral">14</td>
+        <td class="r cf-neutral">14</td>
+        <td class="r cf-neutral">14</td>
+        <td class="r cf-neutral">14</td>
+        <td class="r cf-neutral">54</td>
+        <td class="r cf-neutral">68</td>
+        <td class="r cf-neutral">178</td>
+      </tr>
+      <tr class="subtotal-row">
+        <td><strong>Total Receipts</strong></td>
+        <td class="r cf-total">141</td>
+        <td class="r cf-total">137</td>
+        <td class="r cf-total">132</td>
+        <td class="r cf-total">129</td>
+        <td class="r cf-total">494</td>
+        <td class="r cf-total">601</td>
+        <td class="r cf-total">1,634</td>
+      </tr>
+      <tr><td colspan="8" style="padding:0.5rem 0.75rem; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-4); background:var(--paper-2);">OPERATING DISBURSEMENTS</td></tr>
+      <tr>
+        <td>Cost of goods sold</td>
+        <td class="r cf-negative">(101)</td>
+        <td class="r cf-negative">(98)</td>
+        <td class="r cf-negative">(95)</td>
+        <td class="r cf-negative">(92)</td>
+        <td class="r cf-negative">(354)</td>
+        <td class="r cf-negative">(430)</td>
+        <td class="r cf-negative">(1,170)</td>
+      </tr>
+      <tr>
+        <td>Payroll &amp; benefits</td>
+        <td class="r cf-negative">(22)</td>
+        <td class="r cf-negative">(22)</td>
+        <td class="r cf-negative">(22)</td>
+        <td class="r cf-negative">(22)</td>
+        <td class="r cf-negative">(86)</td>
+        <td class="r cf-negative">(107)</td>
+        <td class="r cf-negative">(281)</td>
+      </tr>
+      <tr>
+        <td>Occupancy / rent</td>
+        <td class="r cf-negative">(19)</td>
+        <td class="r cf-negative">(19)</td>
+        <td class="r cf-negative">(19)</td>
+        <td class="r cf-negative">(19)</td>
+        <td class="r cf-negative">(74)</td>
+        <td class="r cf-negative">(93)</td>
+        <td class="r cf-negative">(243)</td>
+      </tr>
+      <tr>
+        <td>SG&amp;A (excl. above)</td>
+        <td class="r cf-negative">(18)</td>
+        <td class="r cf-negative">(18)</td>
+        <td class="r cf-negative">(18)</td>
+        <td class="r cf-negative">(18)</td>
+        <td class="r cf-negative">(68)</td>
+        <td class="r cf-negative">(85)</td>
+        <td class="r cf-negative">(225)</td>
+      </tr>
+      <tr>
+        <td>Vendor payments (net)</td>
+        <td class="r cf-negative">(45)</td>
+        <td class="r cf-negative">(42)</td>
+        <td class="r cf-negative">(40)</td>
+        <td class="r cf-negative">(38)</td>
+        <td class="r cf-negative">(148)</td>
+        <td class="r cf-negative">(165)</td>
+        <td class="r cf-negative">(478)</td>
+      </tr>
+      <tr class="subtotal-row">
+        <td><strong>Total Disbursements</strong></td>
+        <td class="r cf-negative">(205)</td>
+        <td class="r cf-negative">(199)</td>
+        <td class="r cf-negative">(194)</td>
+        <td class="r cf-negative">(189)</td>
+        <td class="r cf-negative">(730)</td>
+        <td class="r cf-negative">(880)</td>
+        <td class="r cf-negative">(2,397)</td>
+      </tr>
+      <tr><td colspan="8" style="padding:0.5rem 0.75rem; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-4); background:var(--paper-2);">FINANCING</td></tr>
+      <tr>
+        <td>ABL draws (net)</td>
+        <td class="r cf-positive">55</td>
+        <td class="r cf-positive">50</td>
+        <td class="r cf-positive">50</td>
+        <td class="r cf-positive">45</td>
+        <td class="r cf-positive">190</td>
+        <td class="r cf-positive">165</td>
+        <td class="r cf-positive">555</td>
+      </tr>
+      <tr>
+        <td>Interest / fees</td>
+        <td class="r cf-negative">(5)</td>
+        <td class="r cf-negative">(5)</td>
+        <td class="r cf-negative">(5)</td>
+        <td class="r cf-negative">(5)</td>
+        <td class="r cf-negative">(18)</td>
+        <td class="r cf-negative">(22)</td>
+        <td class="r cf-negative">(60)</td>
+      </tr>
+      <tr>
+        <td>Capex (maintenance)</td>
+        <td class="r cf-negative">(2)</td>
+        <td class="r cf-negative">(2)</td>
+        <td class="r cf-negative">(2)</td>
+        <td class="r cf-negative">(2)</td>
+        <td class="r cf-negative">(8)</td>
+        <td class="r cf-negative">(10)</td>
+        <td class="r cf-negative">(28)</td>
+      </tr>
+      <tr class="subtotal-row">
+        <td><strong>Net Weekly Cash Flow</strong></td>
+        <td class="r cf-negative">(16)</td>
+        <td class="r cf-negative">(19)</td>
+        <td class="r cf-negative">(19)</td>
+        <td class="r cf-negative">(22)</td>
+        <td class="r cf-negative">(62)</td>
+        <td class="r cf-negative">(111)</td>
+        <td class="r cf-negative">(249)</td>
+      </tr>
+      <tr>
+        <td><strong>Opening Cash</strong></td>
+        <td class="r mono">153</td>
+        <td class="r mono">137</td>
+        <td class="r mono">118</td>
+        <td class="r mono">99</td>
+        <td class="r mono">77</td>
+        <td class="r mono">15</td>
+        <td class="r mono">153</td>
+      </tr>
+      <tr>
+        <td><strong>Closing Cash</strong></td>
+        <td class="r cf-negative">137</td>
+        <td class="r cf-negative">118</td>
+        <td class="r cf-negative">99</td>
+        <td class="r cf-negative">77</td>
+        <td class="r cf-negative">15</td>
+        <td class="r cf-negative">(96)</td>
+        <td class="r cf-negative">(96)</td>
+      </tr>
+      <tr>
+        <td><strong>ABL Availability</strong></td>
+        <td class="r cf-neutral">280</td>
+        <td class="r cf-neutral">240</td>
+        <td class="r cf-neutral">198</td>
+        <td class="r cf-neutral">162</td>
+        <td class="r cf-neutral">82</td>
+        <td class="r cf-negative">0</td>
+        <td class="r cf-negative">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout red">
+    <strong>Zero-cash event occurs in weeks 9–11</strong> under current trajectory. ABL availability is exhausted simultaneously as the borrowing base collapses from inventory deterioration. The company hits the wall with no liquidity cushion and no unencumbered asset to monetize. This timeline, replicated from actual filing data, explains why Chapter 11 was unavoidable — there was no runway left for an out-of-court restructuring.
+  </div>
+
+  <h3>Key Cash Flow Sensitivities</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Variable</th>
+        <th>Base</th>
+        <th>Stress</th>
+        <th class="r">Weeks to Zero Cash</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Comp sales decline</td>
+        <td>(4%) / week</td>
+        <td>(6%) / week</td>
+        <td class="r cf-negative">Weeks 7–8</td>
+      </tr>
+      <tr>
+        <td>Vendor payment terms</td>
+        <td>Net-30 avg</td>
+        <td>Prepayment required</td>
+        <td class="r cf-negative">Weeks 5–6</td>
+      </tr>
+      <tr>
+        <td>ABL borrowing base</td>
+        <td>80% advance rate</td>
+        <td>70% (inventory markdown)</td>
+        <td class="r cf-negative">Weeks 6–7</td>
+      </tr>
+      <tr>
+        <td>BABY sale proceeds</td>
+        <td>None modeled</td>
+        <td>$450M received Wk 4</td>
+        <td class="r cf-positive">Extends 18–20 weeks</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- WATERFALL -->
+<section id="waterfall">
+  <div class="section-num">05</div>
+  <h2>Liquidation &amp; Recovery Waterfall</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Distribution of asset recoveries against the creditor stack under a Chapter 7 liquidation scenario versus a going-concern sale. Figures in $M.
+  </div>
+
+  <h3>Gross Asset Recovery Estimates</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Asset</th>
+        <th class="r">Book Value</th>
+        <th class="r">Liquidation %</th>
+        <th class="r">Recovery ($M)</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Inventory — Core BB&amp;B</strong></td>
+        <td class="r mono">$820M</td>
+        <td class="r mono">55%</td>
+        <td class="r cf-neutral">$451M</td>
+        <td>GOB sale via Hilco/Gordon Bros; mixed brand/private label</td>
+      </tr>
+      <tr>
+        <td><strong>Inventory — BABY</strong></td>
+        <td class="r mono">$240M</td>
+        <td class="r mono">65%</td>
+        <td class="r cf-neutral">$156M</td>
+        <td>Better brand mix, less clearance pressure</td>
+      </tr>
+      <tr>
+        <td><strong>Accounts Receivable</strong></td>
+        <td class="r mono">$186M</td>
+        <td class="r mono">90%</td>
+        <td class="r cf-neutral">$167M</td>
+        <td>Primarily credit card receivables — highly collectible</td>
+      </tr>
+      <tr>
+        <td><strong>PP&amp;E (fixtures, tech)</strong></td>
+        <td class="r mono">$512M</td>
+        <td class="r mono">18%</td>
+        <td class="r cf-neutral">$92M</td>
+        <td>Store fixtures have minimal secondary market value</td>
+      </tr>
+      <tr>
+        <td><strong>IP / Brand / Database</strong></td>
+        <td class="r mono">—</td>
+        <td class="r mono">—</td>
+        <td class="r cf-neutral">$75M</td>
+        <td>Overstock.com acquired BB&amp;B IP and customer data for ~$21M; upside scenario $75M</td>
+      </tr>
+      <tr>
+        <td><strong>buybuy BABY (going concern)</strong></td>
+        <td class="r mono">—</td>
+        <td class="r mono">—</td>
+        <td class="r cf-positive">$0 (liq.) / $450M (sale)</td>
+        <td>Treated as separate sale process; zero if liquidated with core</td>
+      </tr>
+      <tr class="subtotal-row">
+        <td><strong>Total Gross Recovery</strong></td>
+        <td class="r mono">$1,758M+</td>
+        <td class="r mono">—</td>
+        <td class="r cf-total">~$941M–$1,391M</td>
+        <td>Range depends on BABY outcome</td>
+      </tr>
+      <tr>
+        <td>Less: Admin / professional fees</td>
+        <td class="r">—</td>
+        <td class="r">—</td>
+        <td class="r cf-negative">(~$150M)</td>
+        <td>Estimated Ch. 11 / Ch. 7 costs including advisor fees</td>
+      </tr>
+      <tr class="subtotal-row">
+        <td><strong>Net Distributable Value</strong></td>
+        <td class="r">—</td>
+        <td class="r">—</td>
+        <td class="r cf-total">~$791M–$1,241M</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Recovery Waterfall by Creditor Class</h3>
+
+  <div style="margin: 1.5rem 0 2rem;">
+    <div style="display:flex; gap: 8px; align-items:center; margin-bottom: 12px;">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-4);">SCENARIO A — LIQUIDATION ONLY (No BABY sale)</span>
+      <span class="tag red">~$791M distributable</span>
+    </div>
+
+    <div class="waterfall-bar" style="margin-bottom:6px;">
+      <div class="waterfall-label">ABL Revolver (~$1,200M)</div>
+      <div class="waterfall-track">
+        <div class="waterfall-fill blue" style="width:65%;">~$780M recovered — 65%</div>
+      </div>
+    </div>
+    <div class="waterfall-bar" style="margin-bottom:6px;">
+      <div class="waterfall-label">FILO Term Loan (~$375M)</div>
+      <div class="waterfall-track">
+        <div class="waterfall-fill teal" style="width:3%;">~$11M — 3%</div>
+      </div>
+    </div>
+    <div class="waterfall-bar" style="margin-bottom:6px;">
+      <div class="waterfall-label">2L Term Loan (~$375M)</div>
+      <div class="waterfall-track">
+        <div class="waterfall-fill gray" style="width:1%;"></div>
+      </div>
+    </div>
+    <div class="waterfall-bar" style="margin-bottom:6px;">
+      <div class="waterfall-label">Sr. Unsecured Notes (~$600M)</div>
+      <div class="waterfall-track">
+        <div class="waterfall-fill red" style="width:0.5%;"></div>
+      </div>
+    </div>
+    <div class="waterfall-bar">
+      <div class="waterfall-label">Trade / Lease / Equity</div>
+      <div class="waterfall-track">
+        <div style="height:100%;background:var(--paper-3);display:flex;align-items:center;padding:0 8px;font-size:10px;color:var(--ink-4);font-family:var(--font-mono);">Zero</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; display:flex; gap: 8px; align-items:center; margin-bottom: 12px;">
+      <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink-4);">SCENARIO B — LIQUIDATION + BABY SALE ($450M)</span>
+      <span class="tag amber">~$1,241M distributable</span>
+    </div>
+
+    <div class="waterfall-bar" style="margin-bottom:6px;">
+      <div class="waterfall-label">ABL Revolver (~$1,200M)</div>
+      <div class="waterfall-track">
+        <div class="waterfall-fill blue" style="width:100%;">$1,200M — 100% full recovery</div>
+      </div>
+    </div>
+    <div class="waterfall-bar" style="margin-bottom:6px;">
+      <div class="waterfall-label">FILO Term Loan (~$375M)</div>
+      <div class="waterfall-track">
+        <div class="waterfall-fill teal" style="width:11%;">~$41M — 11%</div>
+      </div>
+    </div>
+    <div class="waterfall-bar" style="margin-bottom:6px;">
+      <div class="waterfall-label">2L / Unsecured / Trade</div>
+      <div class="waterfall-track">
+        <div style="height:100%;background:var(--paper-3);display:flex;align-items:center;padding:0 8px;font-size:10px;color:var(--ink-4);font-family:var(--font-mono);">Zero</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout amber">
+    <strong>The BABY sale is the swing factor.</strong> It moves ABL recovery from partial to full and gives FILO lenders a path to partial recovery. Without it, ABL lenders take a ~35% loss and everything below is zeroed. This explains why Sixth Street (FILO/TL agent) had strong motivation to support a reorganization process long enough to execute an asset sale rather than triggering immediate liquidation.
+  </div>
+</section>
+
+<!-- 72 HOUR -->
+<section id="h72">
+  <div class="section-num">06</div>
+  <h2>First 72-Hour Stabilization Plan</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Day one through day three. This is crisis containment. Every action here is about stopping the bleeding before any strategic work begins.
+  </div>
+
+  <h3>Hour 0–24: Command and Control</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Hour 1–4</div>
+      <div class="tl-title">Establish the Restructuring Command Team</div>
+      <div class="tl-body">Bring in restructuring counsel (Kirkland &amp; Ellis or Weil), financial advisor (Lazard, Houlihan, or AlixPartners), and a Chief Restructuring Officer (CRO) with direct reporting to the board. The CRO owns liquidity. No capital allocation decisions occur without CRO sign-off from this moment forward. All existing cash approval authorities above $50K are suspended pending review.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Hour 4–8</div>
+      <div class="tl-title">ABL Lender Call — Borrowing Base Audit and Covenant Discussion</div>
+      <div class="tl-body">Get BofA (ABL agent) on the phone. Walk them through the current borrowing base certificate. Negotiate a 30-day covenant waiver or standstill agreement while the restructuring plan is developed. This is not optional — without ABL cooperation, there is no liquidity to fund operations in week two. Come with a preliminary stabilization plan and a specific ask, not just a problem statement.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot red"></div>
+      <div class="tl-date">Hour 8–16</div>
+      <div class="tl-title">Freeze All Discretionary Spending — Implement Weekly Cash Authorization</div>
+      <div class="tl-body">Every non-essential disbursement is suspended. Pending capex projects halted. Marketing spend reduced to zero outside of core loyalty/email. Travel and entertainment eliminated. All contracts with professional service providers reviewed for immediate termination or deferral. Every dollar paid from this point has a specific authorization. Institute daily cash reporting to the CRO desk.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot amber"></div>
+      <div class="tl-date">Hour 16–24</div>
+      <div class="tl-title">Internal Employee Communication — Stop the Talent Bleed</div>
+      <div class="tl-body">The moment restructuring advisors appear, key employees start updating their LinkedIn profiles. Issue a direct communication from the CRO and board to all employees at director level and above. Name the situation accurately. Provide a timeline. Announce retention packages for critical personnel — especially the buybuy BABY management team, which needs to remain intact through any sale process. Ambiguity at this stage accelerates departures.</div>
+    </div>
+  </div>
+
+  <h3>Hour 24–48: Information and Assessment</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot amber"></div>
+      <div class="tl-date">Hour 24–36</div>
+      <div class="tl-title">Full Vendor Payables Audit — Identify Critical vs. Non-Critical</div>
+      <div class="tl-body">Pull every open payable. Classify vendors into three tiers: (1) critical — goods needed to maintain minimum shelf presentation and store operations, (2) preferred — brands that drive customer traffic and must be preserved at all costs, (3) non-critical — can be deferred, reduced, or eliminated. This audit determines which vendors get paid in weeks 1–4 and which get deferred into any restructuring process. Make no payments to tier-3 vendors from this point without explicit CRO authorization.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot amber"></div>
+      <div class="tl-date">Hour 36–48</div>
+      <div class="tl-title">Store Performance Data Pull — Identify Immediate Closure Candidates</div>
+      <div class="tl-body">Extract four-wall contribution margin by store for every location. Identify the bottom quartile — approximately 200–225 stores — that are cash flow negative on a four-wall basis after occupancy. These are the immediate closure candidates. This is not a decision yet; it's the decision-ready data package. You want this information before any discussion with landlords or lenders so you negotiate from knowledge, not estimates.</div>
+    </div>
+  </div>
+
+  <h3>Hour 48–72: Stakeholder Communication</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-date">Hour 48–60</div>
+      <div class="tl-title">Top 50 Vendor Meeting — Selective Partial Payment + Forward Commitment</div>
+      <div class="tl-body">Identify the 50 vendors whose product represents more than 60% of revenue. Call each one. Offer partial payment of past-due balances (50 cents on the dollar, in exchange for a written commitment to continue shipping through the restructuring period). This is a negotiation, not a charity. Vendors would rather have 50% now and a path to 100% over time than full exposure in a bankruptcy estate. Secure critical supply chain continuity for the next 8–12 weeks.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-date">Hour 60–72</div>
+      <div class="tl-title">buybuy BABY Separation — Stand-Up Standalone Financials</div>
+      <div class="tl-body">Begin separating buybuy BABY's financial reporting from the consolidated entity. The goal is a clean standalone P&amp;L and balance sheet that can be shown to potential acquirers. Identify all intercompany allocations (shared services, IT, logistics) and begin carve-out analysis. The BABY sale process is the single most important value-creation action available to this estate — it needs to begin within 72 hours to have any chance of completing before liquidity forces a distressed sale.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 30 DAYS -->
+<section id="h30">
+  <div class="section-num">07</div>
+  <h2>First 30-Day Intervention Plan</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Weeks 2 through 4. Stabilization is done. Now you are executing the restructuring thesis. Everything here is sequenced — the output of each action feeds the next.
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Week</th>
+        <th>Action</th>
+        <th>Owner</th>
+        <th>Output</th>
+        <th>Cash Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag gray">Wk 2</span></td>
+        <td><strong>File Chapter 11 (if pre-pack not achievable)</strong><br><span style="font-size:12px;color:var(--ink-3);">Commence case with DIP financing in place. First-day motions to protect employees, vendors, customers</span></td>
+        <td>Restructuring counsel</td>
+        <td>Automatic stay in place; DIP financing approved</td>
+        <td class="r cf-positive">+$250–400M DIP draw</td>
+      </tr>
+      <tr>
+        <td><span class="tag gray">Wk 2</span></td>
+        <td><strong>Launch buybuy BABY Sale Process</strong><br><span style="font-size:12px;color:var(--ink-3);">Engage Lazard or Jefferies as sell-side advisor. Initial outreach to strategic buyers (Carter's, DICK'S, Target) and PE (KKR, Bain, TPG)</span></td>
+        <td>Financial advisor + CRO</td>
+        <td>Teaser sent to 15–20 parties within 10 days</td>
+        <td class="r cf-positive">$400–600M (wk 10–14)</td>
+      </tr>
+      <tr>
+        <td><span class="tag gray">Wk 2</span></td>
+        <td><strong>Close Bottom-Quartile Stores (Phase 1)</strong><br><span style="font-size:12px;color:var(--ink-3);">Begin GOB sales at 150–200 identified negative-contribution stores. Hire Hilco or Tiger Capital for managed liquidation</span></td>
+        <td>Operations / real estate</td>
+        <td>150–200 store closures complete by week 8</td>
+        <td class="r cf-positive">+$80–120M inventory recovery</td>
+      </tr>
+      <tr>
+        <td><span class="tag gray">Wk 3</span></td>
+        <td><strong>Renegotiate Top 20 Landlord Leases</strong><br><span style="font-size:12px;color:var(--ink-3);">Approach highest-cost landlords for immediate rent reductions (25–40%). Rejection of leases on closed stores via bankruptcy process</span></td>
+        <td>Real estate counsel + CRO</td>
+        <td>Lease cost savings of $40–60M annualized</td>
+        <td class="r cf-positive">$8–12M / month</td>
+      </tr>
+      <tr>
+        <td><span class="tag gray">Wk 3</span></td>
+        <td><strong>Vendor Critical Vendor / PACA Motions</strong><br><span style="font-size:12px;color:var(--ink-3);">Identify which vendors qualify for critical vendor treatment. Pay them to restore credit terms. Structure reclamation claims resolution</span></td>
+        <td>Restructuring counsel</td>
+        <td>Supply chain restored to ~70% of pre-crisis levels</td>
+        <td class="r cf-negative">($40–60M) one-time</td>
+      </tr>
+      <tr>
+        <td><span class="tag gray">Wk 3</span></td>
+        <td><strong>Headcount Reduction — Corporate</strong><br><span style="font-size:12px;color:var(--ink-3);">Reduce corporate headcount by 25–35%. Cut all non-essential SG&amp;A. Eliminate private label development team entirely</span></td>
+        <td>HR + CRO</td>
+        <td>~800–1,100 FTE reduction</td>
+        <td class="r cf-positive">$60–85M annualized</td>
+      </tr>
+      <tr>
+        <td><span class="tag gray">Wk 4</span></td>
+        <td><strong>BB&amp;B Brand / IP Sale Process (Secondary)</strong><br><span style="font-size:12px;color:var(--ink-3);">Run parallel process for BB&amp;B.com domain, loyalty database, and brand IP. Overstock.com, Amazon, and Kroger are natural buyers</span></td>
+        <td>Financial advisor</td>
+        <td>LOIs expected by week 8; close by week 12</td>
+        <td class="r cf-positive">$20–75M</td>
+      </tr>
+      <tr>
+        <td><span class="tag gray">Wk 4</span></td>
+        <td><strong>DIP Budget Update and Revised 13-Week Model</strong><br><span style="font-size:12px;color:var(--ink-3);">With all actions above underway, rebuild the cash flow model. Present to DIP lenders and court as confirmation of restructuring progress</span></td>
+        <td>CRO + financial advisor</td>
+        <td>Updated liquidity model showing extended runway</td>
+        <td class="r">Neutral (reporting)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout green">
+    <strong>End-of-month-1 target state:</strong> DIP financing in place, BABY sale process launched with IOIs received, 150+ stores in GOB liquidation, corporate SG&amp;A cut by 30%, vendor supply chain partially restored via critical vendor payments, lease negotiations underway with top 20 landlords. The company is losing less cash per week and the restructuring thesis is visible to all creditors.
+  </div>
+</section>
+
+<!-- CUT / PROTECT / SELL -->
+<section id="actions">
+  <div class="section-num">08</div>
+  <h2>Cut · Protect · Renegotiate · Sell</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    A precise prescription — not a general framework. Applied to the actual BB&amp;B business lines, cost categories, and assets.
+  </div>
+
+  <div class="action-grid">
+    <div class="action-card cut">
+      <div class="ac-label">Cut — Immediately</div>
+      <div class="ac-title">Private Label Development</div>
+      <div class="ac-body">The eight owned brands are the strategic error that caused this crisis. Terminate all private label development, marketing, and procurement. Liquidate existing private label inventory at whatever price clears it. The cost of these programs (~$80M annually) is 100% waste given customer rejection rates.</div>
+    </div>
+    <div class="action-card cut">
+      <div class="ac-label">Cut — Immediately</div>
+      <div class="ac-title">Bottom-Quartile Store Fleet</div>
+      <div class="ac-body">~200–225 stores are cash-flow negative on a four-wall basis. Close them via GOB liquidation process immediately. Each month of delay costs roughly $8–12M in net cash burn on stores that have no path to profitability even in a recovery scenario.</div>
+    </div>
+    <div class="action-card cut">
+      <div class="ac-label">Cut — Immediately</div>
+      <div class="ac-title">Corporate Overhead (30–35%)</div>
+      <div class="ac-body">The corporate function is sized for a $12B retailer. It now serves a $5B retailer. Cut 800–1,100 corporate FTEs. Eliminate all VP-level and above redundancies post-CEO turnover. Consolidate real estate team, marketing team, and IT leadership.</div>
+    </div>
+    <div class="action-card cut">
+      <div class="ac-label">Cut — Phase Out</div>
+      <div class="ac-title">Non-Performing SKU Tail</div>
+      <div class="ac-body">Bottom 30% of SKU count by velocity contributes roughly 3% of revenue but consumes 15–20% of inventory working capital. Rationalize aggressively. Reduce SKU count from ~32,000 to ~18,000. This frees up inventory investment for high-turn national brand product.</div>
+    </div>
+
+    <div class="action-card protect">
+      <div class="ac-label">Protect — Non-Negotiable</div>
+      <div class="ac-title">buybuy BABY Operations + Team</div>
+      <div class="ac-body">This is the most valuable asset in the estate. Any disruption to BABY operations — management departures, brand damage, service degradation — directly impairs the sale value. Retention bonuses, operational ring-fencing, and separate reporting are not optional expenses; they are value preservation costs.</div>
+    </div>
+    <div class="action-card protect">
+      <div class="ac-label">Protect — Non-Negotiable</div>
+      <div class="ac-title">Top-20 National Brand Vendor Relationships</div>
+      <div class="ac-body">Vendors like KitchenAid, Dyson, All-Clad, and Cuisinart are the reason customers walk into BB&amp;B. Restoring these relationships — even at reduced terms — is the only path to revenue stabilization in any going-concern scenario. Pay them first, negotiate terms second, close stores third.</div>
+    </div>
+    <div class="action-card protect">
+      <div class="ac-label">Protect — Strategic Asset</div>
+      <div class="ac-title">Loyalty Customer Database</div>
+      <div class="ac-body">~32 million active customer records with purchase history, preferences, and email addresses. This database has standalone value of $50–150M to a strategic buyer. Do not degrade it by shutting off the email program — actively maintain engagement through the bankruptcy process to preserve list quality.</div>
+    </div>
+    <div class="action-card protect">
+      <div class="ac-label">Protect — Operational</div>
+      <div class="ac-title">Top-300 Store Fleet (Core)</div>
+      <div class="ac-body">The top 300 stores by four-wall contribution are generating real cash. They are the operating core of any going-concern scenario and the asset base for any buyer. Maintain staffing, inventory, and presentation standards at these locations regardless of what happens elsewhere.</div>
+    </div>
+
+    <div class="action-card renegotiate">
+      <div class="ac-label">Renegotiate — Urgent</div>
+      <div class="ac-title">Lease Portfolio (Top 100 Locations)</div>
+      <div class="ac-body">With bankruptcy protection, the company has leverage it never had out of court. Approach the top 100 landlords for 25–40% rent reductions in exchange for lease extensions or abandonment certainty. Most landlords will prefer reduced rent to a dark space. Target $40–60M in annualized lease savings.</div>
+    </div>
+    <div class="action-card renegotiate">
+      <div class="ac-label">Renegotiate — Critical</div>
+      <div class="ac-title">Vendor Payment Terms</div>
+      <div class="ac-body">The pre-crisis standard was Net-30 to Net-45 terms with major vendors. Many had tightened to prepayment. Use the critical vendor motion in bankruptcy to selectively restore terms — pay 50 cents on outstanding balances in exchange for written commitments to Net-30 terms for 12 months. This restores working capital cycle economics.</div>
+    </div>
+    <div class="action-card renegotiate">
+      <div class="ac-label">Renegotiate — Financial</div>
+      <div class="ac-title">DIP Financing Structure</div>
+      <div class="ac-body">Negotiate the DIP facility structure to include roll-up protection for existing ABL lenders (incentive for cooperation) while minimizing the fee load. Target $250–400M DIP commitment at SOFR + 400–500bps with 18-month maturity. Push back on roll-up provisions that encumber the BABY sale proceeds.</div>
+    </div>
+    <div class="action-card renegotiate">
+      <div class="ac-label">Renegotiate — Technology</div>
+      <div class="ac-title">Software &amp; Service Contracts</div>
+      <div class="ac-body">$80–100M in annual software, logistics, and service contracts. Many are long-term agreements with termination fees. Use bankruptcy to reject non-essential contracts and renegotiate critical ones (e-commerce platform, WMS, POS) at 30–50% cost reductions given the company's distressed status and reduced scale.</div>
+    </div>
+
+    <div class="action-card sell">
+      <div class="ac-label">Sell — Primary Priority</div>
+      <div class="ac-title">buybuy BABY (~$400–600M)</div>
+      <div class="ac-body">Launch immediately. Baby retail is a higher-margin, less commoditized category than home goods. Carter's, DICK'S Sporting Goods, Buy Buy Baby standalone PE, and Amazon are all credible acquirers. A clean standalone with strong management and $178M in quarterly revenue has real strategic value. Target close within 12–16 weeks of filing.</div>
+    </div>
+    <div class="action-card sell">
+      <div class="ac-label">Sell — Secondary</div>
+      <div class="ac-title">BB&amp;B Brand &amp; Customer Data ($20–75M)</div>
+      <div class="ac-body">The BB&amp;B brand has recognition value even as the physical stores close. Overstock.com (now Bed Bath &amp; Beyond — they actually purchased it post-filing for $21M), Amazon, or a direct-to-consumer operator could monetize the brand and customer database without the physical infrastructure. This is a fast, clean transaction.</div>
+    </div>
+    <div class="action-card sell">
+      <div class="ac-label">Sell — Asset</div>
+      <div class="ac-title">Owned Real Estate (2–3 Properties)</div>
+      <div class="ac-body">BB&amp;B owned a small number of store locations outright (most were leased). Any owned real estate should be sold and leased back immediately to generate cash for the estate. The proceeds are unencumbered relative to the inventory-collateralized ABL borrowing base.</div>
+    </div>
+    <div class="action-card sell">
+      <div class="ac-label">Sell — Process</div>
+      <div class="ac-title">Inventory via GOB Liquidation</div>
+      <div class="ac-body">Engage Hilco Global or Gordon Brothers for the going-out-of-business inventory liquidation at closing stores. Negotiate a guaranteed floor recovery of 50–55 cents on the dollar for BB&amp;B core inventory, 60–65 cents for BABY. Structure the sale to maximize recovery rate rather than speed — a 6–8 week GOB sale outperforms a rushed 3-week clearance.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SCENARIOS -->
+<section id="scenarios">
+  <div class="section-num">09</div>
+  <h2>Scenario Analysis</h2>
+  <div class="section-rule"></div>
+  <div class="section-lead">
+    Four scenarios tested against the same baseline: Q3 FY2022 financial position. Each shows the cash flow impact, creditor recovery, and strategic outcome at 12-month horizon.
+  </div>
+
+  <div class="scenario-table">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:160px;">Metric</th>
+          <th class="scenario-col-base" style="width:155px;">Base Case<br><span style="font-weight:400;font-size:9px;text-transform:none;">Status quo + DIP + BABY sale</span></th>
+          <th class="scenario-col-cut" style="width:155px;">Aggressive Cuts<br><span style="font-weight:400;font-size:9px;text-transform:none;">Max cost reduction, ~400 stores</span></th>
+          <th class="scenario-col-supply" style="width:155px;">Supplier Stretch<br><span style="font-weight:400;font-size:9px;text-transform:none;">Extended terms, national brand restoration</span></th>
+          <th class="scenario-col-close" style="width:155px;">Store Closures<br><span style="font-weight:400;font-size:9px;text-transform:none;">Close to 400-store fleet, going-concern sale</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Store Count (12mo)</strong></td>
+          <td class="scenario-col-base mono r">~650</td>
+          <td class="scenario-col-cut mono r">~400</td>
+          <td class="scenario-col-supply mono r">~700</td>
+          <td class="scenario-col-close mono r">~400</td>
+        </tr>
+        <tr>
+          <td><strong>Revenue (12mo run-rate)</strong></td>
+          <td class="scenario-col-base mono r">$3.2B</td>
+          <td class="scenario-col-cut mono r">$2.0B</td>
+          <td class="scenario-col-supply mono r">$3.8B</td>
+          <td class="scenario-col-close mono r">$2.2B</td>
+        </tr>
+        <tr>
+          <td><strong>Gross Margin %</strong></td>
+          <td class="scenario-col-base mono r">29.5%</td>
+          <td class="scenario-col-cut mono r">30.0%</td>
+          <td class="scenario-col-supply mono r">32.0%</td>
+          <td class="scenario-col-close mono r">31.5%</td>
+        </tr>
+        <tr>
+          <td><strong>SG&amp;A (annual)</strong></td>
+          <td class="scenario-col-base mono r">$1.10B</td>
+          <td class="scenario-col-cut mono r">$0.68B</td>
+          <td class="scenario-col-supply mono r">$1.20B</td>
+          <td class="scenario-col-close mono r">$0.75B</td>
+        </tr>
+        <tr>
+          <td><strong>EBITDA (12mo)</strong></td>
+          <td class="scenario-col-base"><span class="cf-negative">$(156)M</span></td>
+          <td class="scenario-col-cut"><span class="cf-negative">$(82)M</span></td>
+          <td class="scenario-col-supply"><span class="cf-positive">$16M</span></td>
+          <td class="scenario-col-close"><span class="cf-positive">$38M</span></td>
+        </tr>
+        <tr>
+          <td><strong>Cash from Operations</strong></td>
+          <td class="scenario-col-base"><span class="cf-negative">$(190)M</span></td>
+          <td class="scenario-col-cut"><span class="cf-negative">$(110)M</span></td>
+          <td class="scenario-col-supply"><span class="cf-negative">$(45)M</span></td>
+          <td class="scenario-col-close"><span class="cf-positive">$12M</span></td>
+        </tr>
+        <tr>
+          <td><strong>BABY Sale Proceeds</strong></td>
+          <td class="scenario-col-base"><span class="cf-positive">$450M</span></td>
+          <td class="scenario-col-cut"><span class="cf-positive">$450M</span></td>
+          <td class="scenario-col-supply"><span class="cf-positive">$500M</span></td>
+          <td class="scenario-col-close"><span class="cf-positive">$450M</span></td>
+        </tr>
+        <tr>
+          <td><strong>DIP Facility</strong></td>
+          <td class="scenario-col-base mono r">$300M</td>
+          <td class="scenario-col-cut mono r">$250M</td>
+          <td class="scenario-col-supply mono r">$350M</td>
+          <td class="scenario-col-close mono r">$200M</td>
+        </tr>
+        <tr>
+          <td><strong>Closing Cash (12mo)</strong></td>
+          <td class="scenario-col-base"><span class="cf-positive">$210M</span></td>
+          <td class="scenario-col-cut"><span class="cf-positive">$285M</span></td>
+          <td class="scenario-col-supply"><span class="cf-positive">$380M</span></td>
+          <td class="scenario-col-close"><span class="cf-positive">$330M</span></td>
+        </tr>
+        <tr>
+          <td><strong>ABL Recovery</strong></td>
+          <td class="scenario-col-base"><span class="cf-positive">~90%</span></td>
+          <td class="scenario-col-cut"><span class="cf-positive">~85%</span></td>
+          <td class="scenario-col-supply"><span class="cf-positive">~95%</span></td>
+          <td class="scenario-col-close"><span class="cf-positive">~95%</span></td>
+        </tr>
+        <tr>
+          <td><strong>FILO Recovery</strong></td>
+          <td class="scenario-col-base"><span class="cf-neutral">~25%</span></td>
+          <td class="scenario-col-cut"><span class="cf-neutral">~20%</span></td>
+          <td class="scenario-col-supply"><span class="cf-positive">~40%</span></td>
+          <td class="scenario-col-close"><span class="cf-positive">~45%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Unsecured Recovery</strong></td>
+          <td class="scenario-col-base"><span class="cf-negative">~1%</span></td>
+          <td class="scenario-col-cut"><span class="cf-negative">~0%</span></td>
+          <td class="scenario-col-supply"><span class="cf-negative">~2%</span></td>
+          <td class="scenario-col-close"><span class="cf-negative">~3%</span></td>
+        </tr>
+        <tr>
+          <td><strong>Strategic Outcome</strong></td>
+          <td class="scenario-col-base" style="font-size:12px;">Partial going concern. Core BB&amp;B sold or wound down. BABY standalone.</td>
+          <td class="scenario-col-cut" style="font-size:12px;">Controlled wind-down. Smaller chain possible; likely full liquidation by month 18.</td>
+          <td class="scenario-col-supply" style="font-size:12px;">Best going-concern scenario. National brand restoration drives traffic recovery.</td>
+          <td class="scenario-col-close" style="font-size:12px;"><strong>Recommended.</strong> Clean 400-store fleet sold as going concern to strategic or PE buyer.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Recommended Scenario: Store Closures to 400-Store Fleet</h3>
+  <div class="callout green">
+    <strong>The store closure scenario is the most defensible path to value preservation.</strong> Cutting to a 400-store fleet in the highest-traffic, highest-contribution markets creates a business that is operationally viable, financeable, and acquirable. A 400-store specialty retailer with restored national brand relationships, a 30% leaner cost structure, and $350M+ in cash from the BABY sale and GOB liquidation proceeds is a legitimate asset. Target acquirers include TJX Companies, Ollie's Bargain Outlet, and a PE platform looking for a specialty retail roll-up. The brand has recognition; the real estate positions exist; the vendor relationships can be restored. What cannot be salvaged is the existing cost and debt structure — which is why this scenario requires a clean Chapter 11 process, not an out-of-court workout.
+  </div>
+
+  <h3>What This Simulation Proves</h3>
+  <p>Bed Bath &amp; Beyond did not fail because retail is dying. It failed because of a precise sequence of self-inflicted decisions that a competent restructuring intervention — delivered 12 months earlier — could have interrupted:</p>
+  <ul>
+    <li><strong>The private label pivot was reversible</strong> as late as Q2 2022. National brand relationships could have been rebuilt with vendor payments and commitment to shelf space. The comp decline curve was steep but not yet terminal.</li>
+    <li><strong>The BABY division was always separable</strong> and worth $400–600M as a standalone. This asset sat inside a collapsing entity when it should have been sold, spun, or used as DIP collateral a year before filing.</li>
+    <li><strong>The debt structure was manageable in 2021</strong> at a $7–8B revenue run-rate. The company needed an equity raise, a covenant waiver, and a creditor-supported restructuring plan — not a leveraged equity offering into a declining stock price.</li>
+    <li><strong>The real estate portfolio was a liability that should have been addressed in 2020</strong> when pandemic lease forbearance created a negotiating window. That window was not used. By 2022, landlords had leverage again.</li>
+  </ul>
+
+  <div class="callout neutral">
+    <strong>Final assessment:</strong> In the most favorable scenario, a turnaround team arriving in Q3 2022 with full authority could have preserved $800M–$1.1B in going-concern value versus the ~$300M ultimately recovered in the actual Chapter 11 liquidation. The delta — $500–800M — represents the cost of late intervention, management paralysis, and strategic misdiagnosis.
+  </div>
+</section>
+
+<div class="doc-footer">
+  <span>Project Meridian — Turnaround Simulation</span>
+  <span>Bed Bath &amp; Beyond, Inc. — Chapter 11 Filed August 9, 2023</span>
+  <span>Prepared for analytical purposes using public data</span>
+</div>
+
+</main>
+
+<script>
+  const links = document.querySelectorAll('nav a');
+  const sections = document.querySelectorAll('section[id]');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        links.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.25 });
+
+  sections.forEach(s => observer.observe(s));
+
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+
+</body>
+</html>
